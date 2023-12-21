@@ -90,15 +90,6 @@ function contains_our_param(expr)
     end
 end
 
-
-function get_jump_variable_for_sector(jm, sector)
-    if sector.subindex===nothing
-        return jm[get_name(sector)]
-    else
-        return jm[get_name(sector)][sector.subindex]
-    end
-end
-
 function get_jump_variable_for_param(jm, parameter::ParameterRef)
     if parameter.subindex===nothing
         return jm[get_name(parameter)]
@@ -106,6 +97,8 @@ function get_jump_variable_for_param(jm, parameter::ParameterRef)
         return jm[get_name(parameter)][parameter.subindex]
     end
 end
+
+
 
 function get_jump_variable_for_sector(jm, sector::SectorRef)
     if sector.subindex===nothing
@@ -124,13 +117,6 @@ function get_jump_variable_for_commodity(jm, commodity::CommodityRef)
     end
 end
 
-function get_jump_variable_for_commodity(jm, commodity::ScalarCommodity)
-    return jm[get_name(commodity)]
-end
-
-function get_jump_variable_for_commodity(jm, commodity::IndexedCommodity)
-    return jm[get_name(commodity)][commodity.subindex]
-end
 
 function get_expression_for_commodity_producer_price(jm, pf, commodity::CommodityRef)
 
@@ -168,13 +154,6 @@ function get_jump_variable_for_consumer(jm, consumer::ConsumerRef)
     end
 end
 
-function get_jump_variable_for_consumer(jm, consumer::ScalarConsumer)
-    return jm[consumer.name]
-end
-
-function get_jump_variable_for_consumer(jm, consumer::IndexedConsumer)
-    return jm[consumer.name][consumer.subindex]
-end
 
 # function get_tax_revenue_for_consumer(jm, m, consumer::ScalarConsumer)
 #     taxes = []
