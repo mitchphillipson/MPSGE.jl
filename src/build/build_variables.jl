@@ -24,12 +24,22 @@ function add_variable!(jm::JuMP.Model, name::Symbol, indices, lower_bound::Union
     return output
 end
 
-function add_parameter_to_jump!(jm, parameter::ScalarParameter)
+
+function add_variable!(jm, sector::MPSGEScalar)
+    add_variable!(jm, sector.name, 0.)
+end
+
+function add_variable!(jm, sector::MPSGEIndexed)        
+    add_variable!(jm, sector.name, sector.indices, 0.)
+end
+
+
+function add_variable!(jm, parameter::ScalarParameter)
     jmp_p = JuMP.@variable(jm, set = JuMP.Parameter(parameter.value))
     jm[parameter.name] = jmp_p
 end
 
-function add_parameter_to_jump!(jm, parameter::IndexedParameter)
+function add_variable!(jm, parameter::IndexedParameter)
     # We set the parameter value to 1.0 here, but in a later model building phase that gets replaced
     # with the actual values
     dim = length.(parameter.indices)
@@ -44,37 +54,7 @@ function add_parameter_to_jump!(jm, parameter::IndexedParameter)
     return output
 end
 
-function add_sector_to_jump!(jm, sector::ScalarSector)
-    add_variable!(jm, sector.name, 0.)
-end
 
-function add_sector_to_jump!(jm, sector::IndexedSector)        
-    add_variable!(jm, sector.name, sector.indices, 0.)
-end
-
-function add_commodity_to_jump!(jm, commodity::ScalarCommodity)
-    add_variable!(jm, commodity.name, 0.)
-end
-
-function add_commodity_to_jump!(jm, commodity::IndexedCommodity)
-    add_variable!(jm, commodity.name, commodity.indices, 0.)
-end
-
-function add_consumer_to_jump!(jm, consumer::ScalarConsumer)
-    add_variable!(jm, consumer.name, 0.)
-end
-
-function add_consumer_to_jump!(jm, consumer::IndexedConsumer)
-    add_variable!(jm, consumer.name, consumer.indices, 0.)
-end
-
-function add_aux_to_jump!(jm, aux::ScalarAux)
-    add_variable!(jm, aux.name, 0.)
-end
-
-function add_aux_to_jump!(jm, aux::IndexedAux)
-    add_variable!(jm, aux.name, aux.indices, 0.)
-end
 
 function add_implicitvars!(m)
     # Add compensated supply variable Refs to model
@@ -98,26 +78,12 @@ function add_implicitvars!(m)
 end
 
 function build_variables!(m, jm)
-    # Add all parameters
-
-    for p in parameters(m)
-        add_parameter_to_jump!(jm, p)
+    
+    #This may be a bit much
+    for (name,var) in m._object_dict
+        add_variable!(jm, var)
     end
 
-    # Add all required variables
-
-    for s in sectors(m)
-        add_sector_to_jump!(jm, s)        
-    end
-
-    for c in commodities(m)
-        add_commodity_to_jump!(jm, c)
-    end
-
-    # Add aux variables
-    for aux in auxs(m)
-        add_aux_to_jump!(jm, aux)
-    end
 
     # Add compensated supply variables
     for s in productions(m)
@@ -131,10 +97,6 @@ function build_variables!(m, jm)
         for i in s.inputs
             add_variable!(jm, get_comp_demand_name(i))
         end
-    end
-
-    for c in consumers(m)
-        add_consumer_to_jump!(jm, c)
     end
 
     # Add final demand variables
