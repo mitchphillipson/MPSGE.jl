@@ -66,7 +66,7 @@ function build_marketclearance!(m, jm)
             comp_supplies...) -
             +(0., final_demand..., comp_demands...)
 
-        jump_var = get_jump_variable_for_commodity(jm, commodity)
+        jump_var = get_jump_variable(jm, commodity)
 
         @constraint(jm, jump_ex ⟂ jump_var)
         push!(m._nlexpressions.market_clearance, (expr=jump_ex, var=jump_var))

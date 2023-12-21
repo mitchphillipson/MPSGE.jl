@@ -13,20 +13,8 @@ function convert_mpsge_expr_to_jump_nonlinearexpr(jm, expr)
             else
                 error("Found illegal Expr in tree: $x.")
             end
-        elseif x isa ParameterRef
-            get_jump_variable_for_param(jm, x)
-        elseif x isa CommodityRef
-            get_jump_variable_for_commodity(jm, x)
-        elseif x isa AuxRef
-            get_jump_variable_for_aux(jm, x)
-        elseif x isa SectorRef
-            get_jump_variable_for_sector(jm, x)
-        elseif x isa ConsumerRef
-            get_jump_variable_for_consumer(jm, x)
-        elseif x isa ImplicitvarRef
-            get_jump_variable_for_implicitvar(jm, x)
         else
-            x
+            get_jump_variable(jm,x)
         end
     end
 end
@@ -90,7 +78,7 @@ function contains_our_param(expr)
     end
 end
 
-function get_jump_variable_for_param(jm, parameter::ParameterRef)
+function get_jump_variable(jm, parameter::ParameterRef)
     if parameter.subindex===nothing
         return jm[get_name(parameter)]
     else
@@ -98,23 +86,26 @@ function get_jump_variable_for_param(jm, parameter::ParameterRef)
     end
 end
 
-
-
-function get_jump_variable_for_sector(jm, sector::SectorRef)
-    if sector.subindex===nothing
-        return jm[get_name(sector)]
+function get_jump_variable(jm, V::MPSGERef)
+    if V.subindex===nothing
+        return jm[get_name(V)]
     else
-        return jm[get_name(sector)][sector.subindex]
+        return jm[get_name(V)][V.subindex]
     end
 end
 
 
-function get_jump_variable_for_commodity(jm, commodity::CommodityRef)
-    if commodity.subindex===nothing
-        return jm[get_name(commodity)]
-    else
-        return jm[get_name(commodity)][commodity.subindex]
-    end
+
+function get_jump_variable(jm, im::ImplicitvarRef)
+    # if im.subindex===nothing    
+        return jm[get_name(im)]
+    # else
+        # return jm[get_name(im)][im.subindex]
+    # end
+end
+
+function get_jump_variable(jm, x)
+    return x
 end
 
 
@@ -146,13 +137,6 @@ function get_expression_for_commodity_consumer_price(jm, pf, commodity::Commodit
     return tojump(jm, commodity) * +(1., taxes...)
 end
 
-function get_jump_variable_for_consumer(jm, consumer::ConsumerRef)
-    if consumer.subindex===nothing
-        return jm[get_name(consumer)]
-    else
-        return jm[get_name(consumer)][consumer.subindex]
-    end
-end
 
 
 # function get_tax_revenue_for_consumer(jm, m, consumer::ScalarConsumer)
@@ -275,21 +259,6 @@ function get_tax_revenue_for_consumer_old(jm, m, cr::ConsumerRef)
     return tax
 end
 
-function get_jump_variable_for_aux(jm, aux::AuxRef)
-    if aux.subindex===nothing
-        return jm[get_name(aux)]
-    else
-        return jm[get_name(aux)][aux.subindex]
-    end
-end
-
-function get_jump_variable_for_implicitvar(jm, im::ImplicitvarRef)
-    # if im.subindex===nothing    
-        return jm[get_name(im)]
-    # else
-        # return jm[get_name(im)][im.subindex]
-    # end
-end
 
 function get_prod_func_name(x::Production)
     return Symbol("$(get_name(x.sector, true))")
@@ -322,20 +291,12 @@ function tojump(jm, x::Expr)
     convert_mpsge_expr_to_jump_nonlinearexpr(jm, x)
 end
 
-function tojump(jm, x::CommodityRef)
-    get_jump_variable_for_commodity(jm, x)
-end
-
-function tojump(jm, x::ConsumerRef)
-    get_jump_variable_for_consumer(jm, x)
-end
-
-function tojump(jm, x::SectorRef)
-    get_jump_variable_for_sector(jm, x)
+function tojump(jm, x::MPSGERef)
+    get_jump_variable(jm, x)
 end
 
 function tojump(jm, x::ImplicitvarRef)
-    get_jump_variable_for_implicitvar(jm, x)
+    get_jump_variable(jm, x)
 end
 
 function tojump(jm, x::JuMP.VariableRef)

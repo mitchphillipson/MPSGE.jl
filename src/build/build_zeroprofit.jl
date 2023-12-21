@@ -13,7 +13,7 @@ function build_zeroprofit!(m, jm)
                 )...
             )
 
-        jump_var = get_jump_variable_for_sector(jm, s.sector)
+        jump_var = get_jump_variable(jm, s.sector)
 
         @constraint(jm, jump_ex ⟂ jump_var)
         push!(m._nlexpressions.zero_profit, (expr=jump_ex, var=jump_var))

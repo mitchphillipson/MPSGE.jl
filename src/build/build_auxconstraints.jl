@@ -7,7 +7,7 @@ function build_auxconstraints!(m::Model, jm)
         # TODO Need >=, and possibly <=
 
         jump_ex = convert_mpsge_expr_to_jump_nonlinearexpr(jm, :( $(ac.equation.args[2]) - $(ac.equation.args[3]) ))        
-        jump_var = get_jump_variable_for_aux(jm, ac.aux)
+        jump_var = get_jump_variable(jm, ac.aux)
 
         @constraint(jm, jump_ex ⟂ jump_var)
         push!(m._nlexpressions.aux, (expr=jump_ex, var=jump_var))
