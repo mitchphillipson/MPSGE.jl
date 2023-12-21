@@ -548,14 +548,42 @@ function _set_value(var::IndexedParameter, V::MPSGERef, new_value::Float64)
     var.value[V.subindex] = new_value
 end
 
-function get_value(parameter::ParameterRef)
-    p = get_full(parameter)
-    if p isa ScalarParameter
-        return p.value
-    else
-        return p.value[parameter.subindex]
-    end
+
+"""
+    get_value(P)
+    Function that gets the benchmark field of a variable.
+### Options
+    Parameter::ScalarParameter, ::IndexedParameter
+    Commodity::ScalarCommodity, ::IndexedCommodity
+    Sector::ScalarSector,       ::IndexedSector
+    Consumer::ScalarConsumer,   ::IndexedConsumer
+    Aux::ScalarAux,             ::IndexedAux
+### Example
+```julia-repl
+julia> get_value(var)
+```
+"""
+function get_value(V::MPSGERef)
+    var = get_full(V)
+    return _get_value(var,V)
 end
+
+function _get_value(var::MPSGEScalar, V::MPSGERef)
+    return var.benchmark
+end
+
+function _get_value(var::MPSGEIndexed, V::MPSGERef)
+    return var.benchmark[V.subindex]
+end
+
+function _get_value(parm::ScalarParameter, P::ParameterRef)
+    return parm.value
+end
+
+function _get_value(parm::IndexedParameter, P::ParameterRef)
+    return parm.value[P.subindex]
+end
+
 
 
 """
