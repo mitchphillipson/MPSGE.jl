@@ -27,29 +27,8 @@ This function takes an expression tree and replaces all instances of
 """
 function swap_our_param_with_val(expr)
     return MacroTools.postwalk(expr) do x
-        if x isa ParameterRef
+        if x isa MPSGERef
             return get_value(x)
-        elseif x isa CommodityRef
-            c = get_full(x)
-            if c isa ScalarCommodity
-                return c.benchmark
-            else
-                return c.benchmark[x.subindex]
-            end
-        elseif x isa SectorRef
-            s = get_full(x)
-            if s isa ScalarSector
-                return s.benchmark
-            else
-                return s.benchmark[x.subindex]
-            end
-        elseif x isa AuxRef
-            a = get_full(x)
-            if a isa ScalarAux
-                return a.benchmark
-            else
-                return a.benchmark[x.subindex]
-            end
         else
             return x
         end
