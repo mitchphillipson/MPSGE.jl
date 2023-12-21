@@ -57,13 +57,7 @@ function contains_our_param(expr)
     end
 end
 
-function get_jump_variable(jm, parameter::ParameterRef)
-    if parameter.subindex===nothing
-        return jm[get_name(parameter)]
-    else
-        return jm[get_name(parameter)][parameter.subindex]
-    end
-end
+
 
 function get_jump_variable(jm, V::MPSGERef)
     if V.subindex===nothing
@@ -71,16 +65,6 @@ function get_jump_variable(jm, V::MPSGERef)
     else
         return jm[get_name(V)][V.subindex]
     end
-end
-
-
-
-function get_jump_variable(jm, im::ImplicitvarRef)
-    # if im.subindex===nothing    
-        return jm[get_name(im)]
-    # else
-        # return jm[get_name(im)][im.subindex]
-    # end
 end
 
 function get_jump_variable(jm, x)
