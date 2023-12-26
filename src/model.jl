@@ -326,6 +326,8 @@ end
 
 function _add!(m::Model,s::MPSGEIndexed,output_type)
     m._jump_model = nothing
+    @assert s.name ∉ keys(m._object_dict) "Variable $(s.name) already associated with model"
+
     m._object_dict[s.name] = s
 
     temp_array = Array{output_type}(undef, length.(s.indices)...)
@@ -395,6 +397,7 @@ end
 function add!(m::Model, p::ScalarParameter)
     m._jump_model = nothing
     push!(m._parameters, p)
+    @assert p.name ∉ keys(m._object_dict) "Variable $(s.name) already associated with model"
     m._object_dict[p.name] = p
 
     return ParameterRef(m, length(m._parameters),p.name, nothing, nothing)
@@ -403,6 +406,7 @@ end
 function add!(m::Model, p::IndexedParameter)
     m._jump_model = nothing
     push!(m._parameters, p)
+    @assert p.name ∉ keys(m._object_dict) "Variable $(s.name) already associated with model"
     m._object_dict[p.name] = p
 
     temp_array = Array{ParameterRef}(undef, length.(p.indices)...)
