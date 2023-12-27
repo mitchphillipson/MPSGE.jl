@@ -15,9 +15,9 @@ struct new_DemandFunction
     endowments::Vector{Tuple{CommodityRef,Float64}}
 end
 
-function DemandFunction(    consumer::ConsumerRef,
-    demands::Vector{Tuple{CommodityRef,Float64}},
-    endowments::Vector{Tuple{CommodityRef,Float64}},
+function DemandFunction(consumer::ConsumerRef,
+                        demands::Vector{Tuple{CommodityRef,Float64}},
+                        endowments::Vector{Tuple{CommodityRef,Float64}},
     )
     
     return new_DemandFunction(consumer,demands,endowments)

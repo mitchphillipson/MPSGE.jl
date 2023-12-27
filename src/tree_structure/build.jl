@@ -62,7 +62,8 @@ end
 
 
 function find_path_to_leaves(jm::JuMP.Model, T::netput_tree)
-    return find_paths(jm, T, 1)
+    parent = T.name
+    return find_paths(jm, parent, T, 1)
 end
     
 function find_path_to_leaves(jm::JuMP.Model, T::Union{input_tree{CommodityRef},output_tree{CommodityRef}})
@@ -70,7 +71,7 @@ function find_path_to_leaves(jm::JuMP.Model, T::Union{input_tree{CommodityRef},o
 end
 
 
-function find_paths(jm::JuMP.Model, T::netput_tree,eqn)
+function find_paths(jm::JuMP.Model,parent::Symbol, T::netput_tree,eqn)
     out = []
     parent = T.name
     for child in T.children
@@ -79,17 +80,17 @@ function find_paths(jm::JuMP.Model, T::netput_tree,eqn)
         else
             e = eqn*(build_equation(jm, T)/build_equation(jm, child))^T.elasticity
         end
-        push!(out, find_paths(jm, child,e)...)
+        push!(out, find_paths(jm, parent, child,e)...)
     end
     return out
 end
 
-function find_paths(jm::JuMP.Model, T::input_tree{CommodityRef},eqn)
-    return [(T, -1 * eqn*T.quantity)]
+function find_paths(jm::JuMP.Model, parent::Symbol, T::input_tree{CommodityRef},eqn)
+    return [(T, parent, -1 * eqn*T.quantity)]
 end
 
-function find_paths(jm::JuMP.Model, T::output_tree{CommodityRef},eqn)
-    return [(T, 1 * eqn*T.quantity)]
+function find_paths(jm::JuMP.Model, parent::Symbol, T::output_tree{CommodityRef},eqn)
+    return [(T, parent, 1 * eqn*T.quantity)]
 end
 
 
