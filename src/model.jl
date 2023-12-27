@@ -118,6 +118,9 @@ struct AuxConstraint
     equation
 end
 
+
+abstract type abstract_mpsge_model end;
+
 """
    Model()
     The struct that stores all the elements of the model.
@@ -127,7 +130,7 @@ end
 julia> foo = Model()
 ```
 """
-mutable struct Model
+mutable struct Model <: abstract_mpsge_model
     _object_dict::Dict{Symbol,Any}
 
     _parameters::Vector{Parameter}
@@ -169,7 +172,7 @@ mutable struct Model
 end
 
 
-function Base.getindex(m::Model,idx::Symbol)
+function Base.getindex(m::abstract_mpsge_model,idx::Symbol)
     return m._object_dict[idx]
 end
 
@@ -315,7 +318,7 @@ function Demand(commodity, quantity::Number, price::Union{Float64,Expr}=1.)
 end
 
 
-function _add!(m::Model,s::MPSGEScalar,output_type)
+function _add!(m::abstract_mpsge_model,s::MPSGEScalar,output_type)
     m._jump_model = nothing
     s_ref = output_type(m, s.name,nothing, nothing)
     m._object_dict[s.name] = s
@@ -323,7 +326,7 @@ function _add!(m::Model,s::MPSGEScalar,output_type)
     return s_ref
 end
 
-function _add!(m::Model,s::MPSGEIndexed,output_type)
+function _add!(m::abstract_mpsge_model,s::MPSGEIndexed,output_type)
     m._jump_model = nothing
     m._object_dict[s.name] = s
 
@@ -339,7 +342,7 @@ end
 """
     add!(m,bar)
     Function that adds an element to the model with a name assignment
-    m::Model is always the first Argument
+    m::abstract_mpsge_model is always the first Argument
 
     # Options
     Parameter::ScalarParameter, ::IndexedParameter
@@ -359,39 +362,39 @@ julia> S = add!(m, Sector())
 julia> add!(m, Production()) 
 ```
 """
-function add!(m::Model, s::ScalarSector)
+function add!(m::abstract_mpsge_model, s::ScalarSector)
     _add!(m,s, SectorRef)
 end
 
-function add!(m::Model, s::IndexedSector)
+function add!(m::abstract_mpsge_model, s::IndexedSector)
     _add!(m,s,SectorRef)
 end
 
-function add!(m::Model, c::ScalarCommodity)
+function add!(m::abstract_mpsge_model, c::ScalarCommodity)
     _add!(m,c, CommodityRef)
 end
 
-function add!(m::Model, c::IndexedCommodity)
+function add!(m::abstract_mpsge_model, c::IndexedCommodity)
     _add!(m,c, CommodityRef)
 end
 
-function add!(m::Model, cn::ScalarConsumer)
+function add!(m::abstract_mpsge_model, cn::ScalarConsumer)
     _add!(m,cn, ConsumerRef)
 end
 
-function add!(m::Model, cn::IndexedConsumer)
+function add!(m::abstract_mpsge_model, cn::IndexedConsumer)
     _add!(m,cn, ConsumerRef)
 end
 
-function add!(m::Model, a::ScalarAux)
+function add!(m::abstract_mpsge_model, a::ScalarAux)
     _add!(m,a, AuxRef)
 end
 
-function add!(m::Model, a::IndexedAux)
+function add!(m::abstract_mpsge_model, a::IndexedAux)
     _add!(m,a, AuxRef)
 end
 
-function add!(m::Model, p::ScalarParameter)
+function add!(m::abstract_mpsge_model, p::ScalarParameter)
     m._jump_model = nothing
     push!(m._parameters, p)
     m._object_dict[p.name] = p
@@ -399,7 +402,7 @@ function add!(m::Model, p::ScalarParameter)
     return ParameterRef(m, length(m._parameters),p.name, nothing, nothing)
 end
 
-function add!(m::Model, p::IndexedParameter)
+function add!(m::abstract_mpsge_model, p::IndexedParameter)
     m._jump_model = nothing
     push!(m._parameters, p)
     m._object_dict[p.name] = p
@@ -413,7 +416,7 @@ function add!(m::Model, p::IndexedParameter)
 end
 
 
-function add!(m::Model, p::Production)
+function add!(m::abstract_mpsge_model, p::Production)
     m._jump_model = nothing
 
     for (i,v) in enumerate(p.inputs)        
@@ -434,7 +437,7 @@ function add!(m::Model, p::Production)
     return m
 end
 
-function add!(m::Model, c::DemandFunction)
+function add!(m::abstract_mpsge_model, c::DemandFunction)
     m._jump_model = nothing
 
     for (i,v) in enumerate(c.demands)        
@@ -455,7 +458,7 @@ function add!(m::Model, c::DemandFunction)
     return m
 end
 
-function add!(m::Model, ac::AuxConstraint)
+function add!(m::abstract_mpsge_model, ac::AuxConstraint)
     m._jump_model = nothing
     push!(m._auxconstraints, ac)
     return m
@@ -463,19 +466,19 @@ end
 
 
 
-function add!(m::Model, im::Implicitvar)
+function add!(m::abstract_mpsge_model, im::Implicitvar)
     m._jump_model = nothing
     push!(m._implicitvars, im)
     push!(m._implicitvarsDict,im.name=>ImplicitvarRef(m, length(m._implicitvars),im.name, nothing, nothing))
 end
 
 
-function JuMP.value(m::Model, name::Symbol)
+function JuMP.value(m::abstract_mpsge_model, name::Symbol)
     JuMP.value(m._jump_model[name])
 end
 
 """
-    solve!(m::Model; solver=solvername, keywords)
+    solve!(m::abstract_mpsge_model; solver=solvername, keywords)
     Function to solve the model. Triggers the build if the model hasn't been built yet.
 ### Argumenents
     See @Complementarity.solveMCP() for full list of argument Options
@@ -484,7 +487,7 @@ end
 julia> solve!(m, cumulative_iteration_limit=0)
 ```
 """
-function solve!(m::Model; kwargs...)
+function solve!(m::abstract_mpsge_model; kwargs...)
     if m._jump_model===nothing
         m._jump_model = build(m)
     end
@@ -664,20 +667,20 @@ end
 #############################
 ## Extracting Model Fields ##
 #############################
-_extract_types(m::Model,types...) = [s for (name,s) ∈ m._object_dict if any(isa(s,t) for t∈types)]
+_extract_types(m::abstract_mpsge_model,types...) = [s for (name,s) ∈ m._object_dict if any(isa(s,t) for t∈types)]
 
 
-parameters(m::Model) = m._parameters
+parameters(m::abstract_mpsge_model) = m._parameters
 
-sectors(m::Model) = _extract_types(m, ScalarSector,IndexedSector)
-commodities(m::Model) = _extract_types(m, ScalarCommodity,IndexedCommodity)
-consumers(m::Model) = _extract_types(m, ScalarConsumer,IndexedConsumer)
-auxs(m::Model) = _extract_types(m, ScalarAux,IndexedAux)
+sectors(m::abstract_mpsge_model) = _extract_types(m, ScalarSector,IndexedSector)
+commodities(m::abstract_mpsge_model) = _extract_types(m, ScalarCommodity,IndexedCommodity)
+consumers(m::abstract_mpsge_model) = _extract_types(m, ScalarConsumer,IndexedConsumer)
+auxs(m::abstract_mpsge_model) = _extract_types(m, ScalarAux,IndexedAux)
 
-implicitvars(m::Model) = m._implicitvars
-implicitvarsDict(m::Model) = m._implicitvarsDict
+implicitvars(m::abstract_mpsge_model) = m._implicitvars
+implicitvarsDict(m::abstract_mpsge_model) = m._implicitvarsDict
 
-productions(m::Model) = m._productions
-demands(m::Model) = m._demands
-auxconstraints(m::Model) = m._auxconstraints
+productions(m::abstract_mpsge_model) = m._productions
+demands(m::abstract_mpsge_model) = m._demands
+auxconstraints(m::abstract_mpsge_model) = m._auxconstraints
 

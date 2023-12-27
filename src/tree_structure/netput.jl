@@ -2,7 +2,7 @@ abstract type netput_tree end;
 
 mutable struct input_tree{T} <: netput_tree
     name::T
-    children::vector{input_tree}
+    children::Vector{input_tree}
     elasticity::Float64
     quantity::Float64
     reference_price::Float64
@@ -15,7 +15,7 @@ end
 
 mutable struct output_tree{T} <: netput_tree
     name::T
-    children::vector{output_tree}
+    children::Vector{output_tree}
     elasticity::Float64
     quantity::Float64
     reference_price::Float64
@@ -28,10 +28,14 @@ end
 
 
 
-function update_quantities!(node::netput_tree{CommodityRef})
+function update_quantities!(node::input_tree{CommodityRef})
     return node.quantity
 end
 
+
+function update_quantities!(node::output_tree{CommodityRef})
+    return node.quantity
+end
 
 function update_quantities!(node::netput_tree)
     node.quantity = sum(update_quantities!(child) for child∈node.children)
@@ -48,7 +52,17 @@ end
 ## Show ##
 ##########
 
-function tree_string(m::netput_tree{Symbol};tab_level=0)
+function tree_string(m::input_tree{CommodityRef};tab_level=0)
+    out = "I:$(m.name.name)    Q: $(m.quantity)"
+    return out
+end
+
+function tree_string(m::output_tree{CommodityRef};tab_level=0)
+    out = "O:$(m.name.name)    Q: $(m.quantity)"
+    return out
+end
+
+function tree_string(m::netput_tree;tab_level=0)
     out = ":$(m.name) = $(m.elasticity)\n"
     tab_level+=1
     for child in m.children
@@ -57,22 +71,22 @@ function tree_string(m::netput_tree{Symbol};tab_level=0)
     return out
 end
 
-
-function tree_string(m::netput_tree{CommodityRef};tab_level=0)
-    out = "I:$(m.name.name)    Q: $(m.quantity)"
-    return out
+function Base.show(io::IO, m::input_tree{CommodityRef})
+    out = tree_string(m)
+    print(io,out)
+    return
 end
 
+function Base.show(io::IO, m::output_tree{CommodityRef})
+    out = tree_string(m)
+    print(io,out)
+    return
+end
 
-function Base.show(io::IO, m::netput_tree{Symbol})
+function Base.show(io::IO, m::netput_tree)
     out = tree_string(m)
     print(io,out)
     return
     
 end
 
-function Base.show(io::IO, m::netput_tree{CommodityRef})
-    out = tree_string(m)
-    print(io,out)
-    return
-end
