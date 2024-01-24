@@ -201,6 +201,10 @@ function get_name(P::ParameterRef, include_subindex=false)
     end
 end
 
+function get_name(S::MPSGEVariable)
+    return S.name
+end
+
 get_full(s::MPSGERef) = s.model[s.name]
 get_full(p::ParameterRef) = p.model[p.name]
 
