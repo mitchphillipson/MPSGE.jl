@@ -67,6 +67,11 @@ function get_jump_variable(jm, V::MPSGERef)
     end
 end
 
+function get_jump_variable(jm, S::MPSGEVariable)
+    return jm[get_name(S)]
+end
+
+
 function get_jump_variable(jm, x)
     return x
 end
