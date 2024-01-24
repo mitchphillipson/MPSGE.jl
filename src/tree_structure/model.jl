@@ -29,12 +29,14 @@ mutable struct MPSGEModel <: abstract_mpsge_model
 
     _productions::Vector{new_Production}
     _demands::Vector{new_DemandFunction}
-    MPSGEModel() = new(Dict{Symbol,Any}(), [],[])
+
 
     _jump_model::Union{Nothing,JuMP.Model}
     _status
 
-    _nlexpressions::Any
+    _nlexpressions::Dict{Symbol,Any}
+
+    MPSGEModel() = new(Dict{Symbol,Any}(), [],[],nothing,nothing,Dict{Symbol,Any}())
 end
 
 
@@ -50,4 +52,26 @@ function add!(m::MPSGEModel, c::new_DemandFunction)
 
     push!(m._demands, c)
     return m
+end
+
+
+###########
+## Taxes ##
+###########
+function get_taxes(P::Union{input_tree{CommodityRef},output_tree{CommodityRef}})
+    return [(P.name,P.tax)]
+end
+
+function get_taxes(P::netput_tree)
+    out = []
+    for T in P.children
+        push!(out, get_taxes(T)...)
+    end
+    return out
+end
+
+function get_taxes(P::new_Production)
+    out = get_taxes(P.input)
+    push!(out, get_taxes(P.output)...)
+    return [(a,t) for (a,t) in out if t!=[]]
 end
